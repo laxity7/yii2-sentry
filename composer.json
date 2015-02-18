@@ -1,6 +1,6 @@
 {
-  "name": "e96/yii2-sentry",
-  "description": "A Yii2 client for Sentry (http://getsentry.com)",
+  "name": "sheershoff/yii2-sentry-component",
+  "description": "A Yii2 component for Sentry allowing data arrays passing through Yii2 logging methods",
   "type": "yii2-extension",
   "keywords": ["log", "sentry", "raven", "yii2"],
   "minimum-stability": "dev",
@@ -9,7 +9,14 @@
     {
       "name": "m8rge",
       "email": "to.merge@gmail.com",
-      "homepage": "http://aputilov.ru"
+      "homepage": "http://aputilov.ru",
+      "role": "Developer"
+    },
+    {
+      "name": "Ilya Sheershoff",
+      "email": "sheershoff@gmail.com",
+      "homepage": "http://sheershoff.ru",
+      "role": "Developer"
     }
   ],
   "require": {
@@ -19,7 +26,7 @@
   },
   "autoload": {
     "psr-4": {
-      "e96\\sentry\\": "src/"
+      "sheershoff\\sentry\\": "src/"
     }
   }
 }

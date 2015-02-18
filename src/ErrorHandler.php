@@ -1,6 +1,6 @@
 <?php
 
-namespace e96\sentry;
+namespace sheershoff\sentry;
 
 use yii\base\Component;
 use yii\base\ErrorException;
@@ -79,11 +79,11 @@ class ErrorHandler extends Component
 
             $selectedException = $e;
             while ($nestedException = $selectedException->getPrevious()) {
-                if ($nestedException instanceof ErrorException) {
-                    $ref = new \ReflectionProperty('Exception', 'previous');
-                    $ref->setAccessible(true);
-                    $ref->setValue($selectedException, null);
-                    break;
+                    if ($nestedException instanceof ErrorException) {
+                            $ref = new \ReflectionProperty('Exception', 'previous');
+                            $ref->setAccessible(true);
+                            $ref->setValue($selectedException, null);
+                            break;
                 }
                 $selectedException = $selectedException->getPrevious();
             }
