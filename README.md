@@ -30,6 +30,8 @@ In config file:
 ]
 ```
 
+If application doesn't have `raven` component, the component will not try to send messages to sentry. This is useful for development environments, for example.
+
 ## Usage
 
 Exceptions and PHP errors are caught without effort. Standart `Yii::(error|warning|info|trace)` logging works as usual, but you also can use the following format:
