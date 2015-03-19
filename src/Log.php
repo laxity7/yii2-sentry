@@ -10,7 +10,7 @@ class Log{
 	 * Sends exception to Sentry using raven component
 	 */
 	public static function sendException($message,$category,$exception){
-		if($exception!==null) {
+		if($exception!==null&&Yii::$app->has('raven')) {
 			Yii::$app->get('raven')->getClient()->extra_context($message);
 			Yii::$app->get('raven')->getClient()->captureException($exception);
 		}
