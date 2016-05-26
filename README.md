@@ -1,3 +1,8 @@
+Usage of this fork is strongly discouraged
+==========================================
+
+This fork is abandoned and left for those who still uses it (if any at all). Stick to <https://github.com/E96/yii2-sentry> instead.
+
 Yii2 sentry component
 =====================
 
