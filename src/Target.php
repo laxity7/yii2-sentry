@@ -24,11 +24,38 @@ class Target extends \yii\log\Target
      */
     protected $client;
 
+    /**
+     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as follows:
+     *
+     * ```php
+     * function ($client)
+     * ```
+     */
+    public $userContext = null;
+
     public function init()
     {
         parent::init();
 
         $this->client = new \Raven_Client($this->dsn, $this->clientOptions);
+        $this->setUserContext();
+    }
+
+    /**
+     * Set user context for Raven_Client.
+     * @see \Raven_Client::user_context
+     */
+    public function setUserContext()
+    {
+        if ($this->userContext === null) {
+            return;
+        }
+
+        if (is_callable($this->userContext)) {
+            $this->userContext = call_user_func($this->userContext, $this->client);
+        }
+
+        $this->client->user_context($this->userContext);
     }
 
     protected function getContextMessage()
