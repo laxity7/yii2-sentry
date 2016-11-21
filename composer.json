@@ -1,25 +1,38 @@
 {
-  "name": "e96/yii2-sentry",
-  "description": "A Yii2 client for Sentry (http://getsentry.com)",
+  "name": "laxity7/yii2-sentry",
+  "description": "A Yii2 component for Sentry allowing data arrays passing through Yii2 logging methods",
   "type": "yii2-extension",
   "keywords": ["log", "sentry", "raven", "yii2"],
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "license": "MIT",
   "authors": [
     {
       "name": "m8rge",
       "email": "to.merge@gmail.com",
-      "homepage": "http://aputilov.ru"
+      "homepage": "http://aputilov.ru",
+      "role": "Developer"
+    },
+    {
+      "name": "Ilya Sheershoff",
+      "email": "sheershoff@gmail.com",
+      "homepage": "http://sheershoff.ru",
+      "role": "Developer"
+    },
+    {
+      "name": "Vlad Varlamov",
+      "email": "laxity7@gmail.com",
+      "homepage": "http://laxity.ru",
+      "role": "Developer"
     }
   ],
   "require": {
     "php": ">=5.4.0",
     "yiisoft/yii2": "*",
-    "sentry/sentry": "~0.10"
+    "sentry/sentry": "^1.5"
   },
   "autoload": {
     "psr-4": {
-      "e96\\sentry\\": "src/"
+      "laxity7\\sentry\\": "src/"
     }
   }
 }
