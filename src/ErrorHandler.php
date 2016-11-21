@@ -1,6 +1,6 @@
 <?php
 
-namespace e96\sentry;
+namespace laxity7\sentry;
 
 use yii\base\Component;
 use yii\base\ErrorException;
@@ -36,17 +36,44 @@ class ErrorHandler extends Component
      */
     protected $oldExceptionHandler;
 
+    /**
+     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as follows:
+     *
+     * ```php
+     * function ($client)
+     * ```
+     */
+    public $userContext = null;
+
     public function init()
     {
         parent::init();
 
         $this->client = new \Raven_Client($this->dsn, $this->clientOptions);
 
+        $this->setUserContext();
         $this->ravenErrorHandler = new \Raven_ErrorHandler($this->client);
         $this->ravenErrorHandler->registerErrorHandler(true);
         // shutdown function not working in yii2 yet: https://github.com/yiisoft/yii2/issues/6637
         //$this->ravenErrorHandler->registerShutdownFunction();
         $this->oldExceptionHandler = set_exception_handler(array($this, 'handleYiiExceptions'));
+    }
+
+    /**
+     * Set user context for Raven_Client.
+     * @see \Raven_Client::user_context
+     */
+    public function setUserContext()
+    {
+        if ($this->userContext === null) {
+            return;
+        }
+
+        if (is_callable($this->userContext)) {
+            $this->userContext = call_user_func($this->userContext, $this->client);
+        }
+
+        $this->client->user_context($this->userContext);
     }
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace e96\sentry;
+namespace laxity7\sentry;
 
 use Raven_Stacktrace;
 use yii\base\ErrorException;
@@ -24,11 +24,38 @@ class Target extends \yii\log\Target
      */
     protected $client;
 
+    /**
+     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as follows:
+     *
+     * ```php
+     * function ($client)
+     * ```
+     */
+    public $userContext = null;
+
     public function init()
     {
         parent::init();
 
         $this->client = new \Raven_Client($this->dsn, $this->clientOptions);
+        $this->setUserContext();
+    }
+
+    /**
+     * Set user context for Raven_Client.
+     * @see \Raven_Client::user_context
+     */
+    public function setUserContext()
+    {
+        if ($this->userContext === null) {
+            return;
+        }
+
+        if (is_callable($this->userContext)) {
+            $this->userContext = call_user_func($this->userContext, $this->client);
+        }
+
+        $this->client->user_context($this->userContext);
     }
 
     protected function getContextMessage()
@@ -37,7 +64,7 @@ class Target extends \yii\log\Target
     }
 
     /**
-     * Filter all exceptions. They logged via ErrorHandler
+     * Filter all exceptions. They're logged via ErrorHandler
      * @inheritdoc
      */
     public static function filterMessages($messages, $levels = 0, $categories = [], $except = [])
@@ -54,7 +81,7 @@ class Target extends \yii\log\Target
             ) {
                 continue;
             }
-            if (strpos($message[0], 'exception \'') === 0) {
+            if (is_string($message[0]) && strpos($message[0], 'exception \'') === 0) {
                 unset($messages[$i]);
             }
         }
@@ -74,12 +101,37 @@ class Target extends \yii\log\Target
             if (!in_array($levelName, ['error', 'warning', 'info'])) {
                 $levelName = 'error';
             }
+
+            if (is_array($msg)) {
+                if (isset($msg['data'])) {
+                    $new_extras = $msg['data'];
+                    unset($msg['data']);
+                }
+                if (isset($msg['msg'])) {
+                    $new_msg = $msg['msg'];
+                    unset($msg['msg']);
+                } else {
+                    $new_msg = 'Unknown event format'; // deliver event data even if the format doesn't fit
+                    $new_extras = array_merge($new_extras, $msg);
+                    $new_tags = ['format' => 'unknown'];
+                }
+            }
+
             $data = [
                 'timestamp' => gmdate('Y-m-d\TH:i:s\Z', $timestamp),
                 'level' => $levelName,
                 'tags' => ['category' => $category],
-                'message' => $msg,
+                'message' => isset($new_msg) ? $new_msg : $msg,
             ];
+
+            if (isset($new_tags)) {
+                $data['tags'] = array_merge($new_tags, $this->client->get_tags(), $this->client->context->extra);
+            }
+
+            if (isset($new_extras)) {
+                $data['extra'] = array_merge($new_extras, $this->client->tags, $this->client->context->tags);
+            }
+
             if (!empty($traces)) {
                 $data['sentry.interfaces.Stacktrace'] = [
                     'frames' => Raven_Stacktrace::get_stack_info($traces),

@@ -1,6 +1,6 @@
 <?php
 
-namespace e96\sentry;
+namespace laxity7\sentry;
 
 
 class SentryHelper 
