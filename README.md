@@ -1,8 +1,3 @@
-Usage of this fork is strongly discouraged
-==========================================
-
-This fork is abandoned and left for those who still uses it (if any at all). Stick to <https://github.com/E96/yii2-sentry> instead.
-
 Yii2 sentry component
 =====================
 
@@ -17,22 +12,22 @@ php composer.phar require laxity7/yii2-sentry
 In config file:
 
 ```php
-'bootstrap' => ['log', 'raven'],
+'bootstrap'  => ['log', 'raven'],
 'components' => [
     'raven' => [
         'class' => 'laxity7\sentry\ErrorHandler',
-        'dsn' => '', // Sentry DSN
+        'dsn'   => '', // Sentry DSN
     ],
-    'log' => [
+    'log'   => [
         'targets' => [
             [
-                'class' => 'laxity7\sentry\Target',
+                'class'  => 'laxity7\sentry\Target',
                 'levels' => ['error', 'warning'],
-                'dsn' => '', // Sentry DSN
-            ]
+                'dsn'    => '', // Sentry DSN
+            ],
         ],
     ],
-]
+],
 ```
 
 If application doesn't have `raven` component, the component will not try to send messages to sentry. This is useful for development environments, for example.
@@ -43,11 +38,13 @@ Exceptions and PHP errors are caught without effort. Standart `Yii::(error|warni
 
 ```php
 Yii::warning([
-    'msg' => 'SomeWarning', // event name that will be sent to Sentry
-    'data' => [ // extra data for the event
-        'userId' => Yii::$app->user->id,
+    // event name that will be sent to Sentry
+    'msg'  => 'SomeWarning',
+    // extra data for the event
+    'data' => [
+        'userId'                     => Yii::$app->user->id,
         'someDataOnWarningSituation' => $controller->state,
-        'modelThatCausedFailure' => $model->attributes,
+        'modelThatCausedFailure'     => $model->attributes,
     ],
 ], 'eventCategory');
 ```
@@ -59,15 +56,17 @@ Wherever you need to log a caught exception with stacktrace and additional data,
 ```php
 use laxity7\sentry\Log;
 // some code here
-try{
-    $model1->save();
-}catch (\Exception $e){
+try {
+    $model->save();
+} catch (\Exception $e) {
     Log::warning([
-        'msg' => 'ExceptionWarning', // event name that will be sent to Sentry
-        'data' => [ // extra data for the event
-            'userId' => Yii::$app->user->id,
+        // event name that will be sent to Sentry
+        'msg'  => 'ExceptionWarning', 
+        // extra data for the event
+        'data' => [ 
+            'userId'                     => Yii::$app->user->id,
             'someDataOnWarningSituation' => $controller->state,
-            'modelThatCausedFailure' => $model->attributes,
+            'modelThatCausedFailure'     => $model->attributes,
         ],
     ], 'exceptionCategory', $e);
 }
@@ -100,23 +99,26 @@ To use the power of the component you should keep in mind that other log targets
 ```php
 namespace common\components;
 use Yii;
+use yii\log\Logger;
+use yii\helpers\Json;
 class SyslogJsonTarget extends \yii\log\SyslogTarget
 {
-	/**
-	 * @inheritdoc
-	 */
-	public function formatMessage($message)
-	{
-		list($text, $level, $category, $timestamp) = $message;
-		$level = \yii\log\Logger::getLevelName($level);
-		if (!is_string($text)) {
-			$text = \yii\helpers\Json::encode($text);
-		} else {
-			$text = \yii\helpers\Json::encode(['rawstring' => $text]);
-		}
-		$prefix = $this->getMessagePrefix($message);
-		return "{$prefix}[$level][$category] $text";
-	}
+    /**
+     * @inheritdoc
+     */
+    public function formatMessage($message)
+    {
+        list($text, $level, $category, $timestamp) = $message;
+        $level = Logger::getLevelName($level);
+        if (!is_string($text)) {
+            $text = Json::encode($text);
+        } else {
+            $text = Json::encode(['rawstring' => $text]);
+        }
+        $prefix = $this->getMessagePrefix($message);
+
+        return "{$prefix}[$level][$category] $text";
+    }
 }
 ```
 
