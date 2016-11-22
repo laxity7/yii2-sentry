@@ -6,6 +6,9 @@ use Raven_Stacktrace;
 use yii\base\ErrorException;
 use yii\log\Logger;
 
+/**
+ * Class Target
+ */
 class Target extends \yii\log\Target
 {
     /**
@@ -25,7 +28,8 @@ class Target extends \yii\log\Target
     protected $client;
 
     /**
-     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as follows:
+     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as
+     *      follows:
      *
      * ```php
      * function ($client)
@@ -33,6 +37,7 @@ class Target extends \yii\log\Target
      */
     public $userContext = null;
 
+    /** @inheritdoc */
     public function init()
     {
         parent::init();
@@ -58,6 +63,7 @@ class Target extends \yii\log\Target
         $this->client->user_context($this->userContext);
     }
 
+    /** @inheritdoc */
     protected function getContextMessage()
     {
         return '';
@@ -89,13 +95,12 @@ class Target extends \yii\log\Target
         return $messages;
     }
 
-    /**
-     * Exports log [[messages]] to a specific destination.
-     */
+    /** @inheritdoc */
     public function export()
     {
         foreach ($this->messages as $message) {
             list($msg, $level, $category, $timestamp, $traces) = $message;
+            $new_extras = [];
 
             $levelName = Logger::getLevelName($level);
             if (!in_array($levelName, ['error', 'warning', 'info'])) {
@@ -119,16 +124,16 @@ class Target extends \yii\log\Target
 
             $data = [
                 'timestamp' => gmdate('Y-m-d\TH:i:s\Z', $timestamp),
-                'level' => $levelName,
-                'tags' => ['category' => $category],
-                'message' => isset($new_msg) ? $new_msg : $msg,
+                'level'     => $levelName,
+                'tags'      => ['category' => $category],
+                'message'   => isset($new_msg) ? $new_msg : $msg,
             ];
 
             if (isset($new_tags)) {
                 $data['tags'] = array_merge($new_tags, $this->client->get_tags(), $this->client->context->extra);
             }
 
-            if (isset($new_extras)) {
+            if (!empty($new_extras)) {
                 $data['extra'] = array_merge($new_extras, $this->client->tags, $this->client->context->tags);
             }
 

@@ -6,7 +6,7 @@ use yii\base\Component;
 use yii\base\ErrorException;
 
 /**
- * @property \Raven_Client $client
+ * Class ErrorHandler
  */
 class ErrorHandler extends Component
 {
@@ -20,6 +20,16 @@ class ErrorHandler extends Component
      * @see \Raven_Client::__construct for more details
      */
     public $clientOptions = [];
+
+    /**
+     * @var callable|array|null User context for Raven_Client.
+     * Callable must return array and its signature must be as follows:
+     *
+     * ```php
+     * function ($client)
+     * ```
+     */
+    public $userContext = null;
 
     /**
      * @var \Raven_Client
@@ -36,15 +46,7 @@ class ErrorHandler extends Component
      */
     protected $oldExceptionHandler;
 
-    /**
-     * @var callable|array|null User context for Raven_Client. Callable must return array and its signature must be as follows:
-     *
-     * ```php
-     * function ($client)
-     * ```
-     */
-    public $userContext = null;
-
+    /** @inheritdoc */
     public function init()
     {
         parent::init();
@@ -56,7 +58,7 @@ class ErrorHandler extends Component
         $this->ravenErrorHandler->registerErrorHandler(true);
         // shutdown function not working in yii2 yet: https://github.com/yiisoft/yii2/issues/6637
         //$this->ravenErrorHandler->registerShutdownFunction();
-        $this->oldExceptionHandler = set_exception_handler(array($this, 'handleYiiExceptions'));
+        $this->oldExceptionHandler = set_exception_handler([$this, 'handleYiiExceptions']);
     }
 
     /**
@@ -95,7 +97,9 @@ class ErrorHandler extends Component
     /**
      * Filter exception and its previous exceptions for yii\base\ErrorException
      * Raven expects normal stacktrace, but yii\base\ErrorException may have xdebug_get_function_stack
+     *
      * @param \Exception $e
+     *
      * @return bool
      */
     public function canLogException(&$e)
@@ -111,6 +115,7 @@ class ErrorHandler extends Component
                     $ref = new \ReflectionProperty('Exception', 'previous');
                     $ref->setAccessible(true);
                     $ref->setValue($selectedException, null);
+
                     return true;
                 }
                 $selectedException = $selectedException->getPrevious();

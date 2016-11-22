@@ -2,76 +2,122 @@
 
 namespace laxity7\sentry;
 
-
-class SentryHelper 
+/**
+ * Class SentryHelper
+ */
+class SentryHelper
 {
     /**
-     * @param mixed $data
+     * Appends additional context
+     *
+     * For example,
+     *
+     * ```php
+     * SentryHelper::extraData([$task->attributes]);
+     * throw new Exception('unknown task type');
+     * ```
+     *
+     * @param array $data Associative array of extra data
+     *
      * @return bool
-     * @throws \yii\base\InvalidConfigException
      */
     public static function extraData($data)
     {
-        /** @var ErrorHandler $raven */
-        $raven = \Yii::$app->get('raven', false);
-        if ($raven instanceof ErrorHandler) {
-            $raven->client->extra_context($data);
-            return true;
+        $ravenClient = self::getRavenClient();
+        if (!$ravenClient) {
+            return false;
         }
 
-        return false;
+        $ravenClient->extra_context($data);
+
+        return true;
     }
 
     /**
+     * Clear additional context
      * @return bool
      */
     public static function clearExtraData()
     {
-        /** @var ErrorHandler $raven */
-        $raven = \Yii::$app->get('raven', false);
-        if ($raven instanceof ErrorHandler) {
-            $raven->client->context->clear();
-            return true;
+        $ravenClient = self::getRavenClient();
+        if (!$ravenClient) {
+            return false;
         }
 
-        return false;
+        $ravenClient->context->clear();
+
+        return true;
     }
 
     /**
-     * @param string $message
-     * @param null|\Exception $previousException
-     * @param string $level one of Raven_Client::* levels
-     * @param string $exceptionClass
+     * Log an exception with a text message to sentry
+     *
+     * For example,
+     *
+     * ```php
+     * try {
+     *     throw new Exception('FAIL');
+     * } catch (Exception $e) {
+     *     SentryHelper::captureWithMessage('Fail to save model', $e);
+     * }
+     * ```
+     *
+     * @param string          $message           Text message of an exception
+     * @param null|\Exception $previousException Instance class of a previous exception (exception which will be
+     *                                           expanded)
+     * @param string          $level             One of Raven_Client::* levels
+     * @param string          $exceptionClass    Base exception class
+     *
      * @return bool
-     * @throws \yii\base\InvalidConfigException
      */
-    public static function captureWithMessage($message, $previousException = null, $level = \Raven_Client::ERROR, $exceptionClass = 'yii\base\Exception')
-    {
-        /** @var ErrorHandler $raven */
-        $raven = \Yii::$app->get('raven', false);
-        if ($raven instanceof ErrorHandler) {
-            $raven->client->captureException(new $exceptionClass($message, 0, $previousException), ['level' => $level]);
-            return true;
+    public static function captureWithMessage(
+        $message,
+        $previousException = null,
+        $level = \Raven_Client::ERROR,
+        $exceptionClass = 'yii\base\Exception'
+    ) {
+        $ravenClient = self::getRavenClient();
+        if (!$ravenClient) {
+            return false;
         }
 
-        return false;
+        $ravenClient->captureException(new $exceptionClass($message, 0, $previousException), ['level' => $level]);
+
+        return true;
     }
 
     /**
-     * @param \Exception $exception
-     * @param string $level one of Raven_Client::* levels
+     * Log an exception to sentry
+     *
+     * @param \Exception $exception The Exception object
+     * @param string     $level     One of Raven_Client::* levels
+     *
      * @return bool
-     * @throws \yii\base\InvalidConfigException
      */
     public static function captureException($exception, $level = \Raven_Client::ERROR)
     {
-        /** @var ErrorHandler $raven */
-        $raven = \Yii::$app->get('raven', false);
-        if ($raven instanceof ErrorHandler) {
-            $raven->client->captureException($exception, ['level' => $level]);
-            return true;
+        $ravenClient = self::getRavenClient();
+        if (!$ravenClient) {
+            return false;
         }
 
-        return false;
+        $ravenClient->captureException($exception, ['level' => $level]);
+
+        return true;
+    }
+
+    /**
+     * Get instance of the Raven Client
+     *
+     * @return \Raven_Client|null
+     */
+    public static function getRavenClient()
+    {
+        $raven = \Yii::$app->get('raven', false);
+        if ($raven instanceof ErrorHandler) {
+            return $raven->getClient();
+        } else {
+            return null;
+        }
     }
 }
